@@ -1,0 +1,98 @@
+---
+title: "511-mbti"
+author: "Hongxin Wu"
+date: "2022-11-28"
+output:
+  html_document: default
+  pdf_document: default
+---
+```{r}
+library(tidyverse)
+library(ggplot2)
+mbti <- read.csv("mbti_new.csv")
+head(mbti)
+```
+```{r}
+mbti_table <- table(mbti$type,mbti$sia)
+knitr::kable(mbti_table)
+mbti_table
+```
+```{r}
+myX2.2 = function(A){
+  r <- rowSums(A)
+  c <- colSums(A)
+  N = sum(A)
+  expected <- outer(r,c)/N
+  return(sum((A-expected)^2/expected))
+}
+```
+```{r}
+x2=myX2.2(mbti_table)
+pchisq(x2, df = (16-1)*(2-1), lower.tail = F) #p-value
+```
+```{r}
+mbti_chi <- chisq.test(mbti_table)
+mbti_chi
+mbti_chi$p.value
+```
+```{r}
+myperm = function(){
+  N <- length(mbti[,1])
+  mbti$sia <- mbti$sia[sample(N,N)]
+  return(myX2.2(table(mbti$type, mbti$sia))) #calculate the test statistic for each permutation.
+}
+```
+```{r}
+set.seed(1234)
+z <- replicate(10000, myperm()) #10000 permutations
+
+hist(z, breaks = 50, prob = T, xlim = c(0,70))
+abline(v = x2, col = 2)
+```
+
+```{r}
+entp.val <- mbti$value[mbti$type=="ENTP"]
+intp.val <- mbti$value[mbti$type=="INTP"]
+```
+```{r}
+set.seed(1234)
+N <- 10000
+mbti.diff.mean <- numeric(N) 
+
+for (i in 1:N)
+{
+entp.sample <- sample(entp.val, 10, replace = TRUE)
+intp.sample <- sample(intp.val, 10, replace = TRUE)
+mbti.diff.mean[i] <- mean(entp.sample) - mean(intp.sample)
+}
+
+hist(mbti.diff.mean,main = "Bootstrap distribution of difference in means")
+abline(v = mean(entp.val) - mean(intp.val), col = 2, lwd = 2)
+```
+```{r}
+qqnorm(mbti.diff.mean)
+qqline(mbti.diff.mean)
+```
+```{r}
+mean(entp.val) - mean(intp.val) #original smaple
+```
+```{r}
+mean(mbti.diff.mean) #bootstrap sample
+```
+```{r}
+sd(mbti.diff.mean)
+```
+```{r}
+# 95% CI
+ci.1 <- quantile(mbti.diff.mean, c(0.025, 0.975))
+ci.1
+```
+```{r}
+mean(mbti.diff.mean) - (mean(entp.val) - mean(intp.val)) # bias
+```
+```{r}
+hist(mbti.diff.mean, prob = T, main = "Histogram of bootstrap sample means")
+abline(v = mean(entp.val) - mean(intp.val), col = 2, lwd = 2)
+abline(v = ci.1, col = 4, lwd = 2)
+```
+

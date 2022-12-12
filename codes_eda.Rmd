@@ -1,0 +1,109 @@
+---
+title: "Codes_EDA"
+author: "Shihong Zhou"
+
+output: rmdformats::robobook
+---
+
+```{r}
+data = read.csv("../mbti_r.csv")
+data
+```
+
+```{r}
+data <- subset(data, select = -posts)
+```
+
+```{r}
+data
+```
+
+```{r}
+library(dplyr)
+mbtitype <- data %>% group_by(type) %>%
+  summarise(total_count = n(),
+            .groups = "drop")
+```
+
+```{r}
+mbtitype
+```
+
+
+```{r}
+barplot(mbtitype$total_count,
+names.arg = mbtitype$type,
+col = "#d9b1f0",
+las = 2)
+```
+
+
+```{r}
+mbtitype$first <- substr(mbtitype$type,1,1)
+mbtitype$second <- substr(mbtitype$type,2,2)
+mbtitype$third <- substr(mbtitype$type,3,3)
+mbtitype$fourth <- substr(mbtitype$type,4,4)
+```
+
+```{r}
+mbtitype
+```
+
+
+
+```{r}
+first <- mbtitype %>%
+  group_by(first) %>%
+  summarise(counts = sum(total_count))
+
+second <- mbtitype %>%
+  group_by(second) %>%
+  summarise(counts = sum(total_count))
+
+third <- mbtitype %>%
+  group_by(third) %>%
+  summarise(counts = sum(total_count))
+
+fourth <- mbtitype %>%
+  group_by(fourth) %>%
+  summarise(counts = sum(total_count))
+```
+
+```{r}
+first
+```
+
+
+```{r}
+barplot(first$counts,
+names.arg = first$first,
+col = "#eb8060"
+)
+```
+
+```{r}
+barplot(second$counts,
+names.arg = second$second,
+col = "#b9e38d"
+)
+```
+
+```{r}
+barplot(third$counts,
+names.arg = third$third,
+col = "#a1e9f0"
+)
+```
+
+```{r}
+barplot(fourth$counts,
+names.arg = fourth$fourth,
+col = "pink"
+)
+```
+
+
+
+
+
+
